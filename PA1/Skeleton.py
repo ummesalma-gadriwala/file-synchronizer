@@ -85,10 +85,12 @@ class Tracker(threading.Thread):
                 data_dic = json.loads(data)
             print(data_dic) # TEST ONLY, REMOVE LATER
             # sync and send files json data
+            i = BUFFER_SIZE;
             while True:
-                sent = self.server.send(data_dic)
+                sent = self.server.send(data_dic[:i])
                 if sent == 0: raise RuntimeError("Connection broken")
-                if len(data_dic) < self.BUFFER_SIZE:
+                i += BUFFER_SIZE 
+                if len(data_dic) < i:
                     break
                                 
         conn.close() # Close
