@@ -44,7 +44,8 @@ class Tracker(threading.Thread):
         #YOUR CODE
         #listen for connections
             #backlog specifies the max number of queued connections and should be at least 1; max 5
-        self.server.listen(5)
+        self.server.listen(1)
+        print('The server is ready to receive')
         
 
     def check_user(self):
@@ -73,17 +74,23 @@ class Tracker(threading.Thread):
         print 'Client connected with ' + addr[0] + ':' + str(addr[1])
         while True:
             #receive data
-            data = ''
-            while True:
-                part = conn.recv(self.BUFFER_SIZE)
-                data =data + part
-                if len(part) < self.BUFFER_SIZE:
-                    break
+            data = conn.recv(self.BUFFER_SIZE)
+            #YOUR CODE
+            # check if the received data is a json string and load the json string
+            if (not is_json(data)):
+            	print ("Invalid data sent")
+            
+            #data = ''
+            #while True:
+                #part = conn.recv(self.BUFFER_SIZE)
+            #data = data + part
+                #if len(part) < self.BUFFER_SIZE:
+                    #break
             #YOUR CODE
             # check if the received data is a json string and load the json string
             if (is_json(data)):
                 data_dic = json.loads(data)
-            print(data_dic) # TEST ONLY, REMOVE LATER
+                print(data_dic) # TEST ONLY, REMOVE LATER
             # sync and send files json data
             i = BUFFER_SIZE;
             while True:
