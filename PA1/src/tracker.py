@@ -28,13 +28,10 @@ class Tracker(threading.Thread):
         self.BUFFER_SIZE = 8192
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.users = {} # current connections  self.users[(ip,port)] = {'exptime':}
-<<<<<<< HEAD
         self.files = {} #{'ip':,'port':,'mtime':} modification time
         #when user is disconnected, all files are removed from here
-=======
         self.files = {} #{'ip':,'port':,'mtime':}
         #QUESTION: Is self.files a nested dictionary? A dictionary of dictionaries?
->>>>>>> ae23594fec05daaa71a55256fcdfeb5495a94435
         self.lock = threading.Lock()
         try:
             #YOUR CODE
@@ -75,11 +72,8 @@ class Tracker(threading.Thread):
             # lock acquired by this client
             self.lock.acquire()
             print ('connect to:',addr[0], addr[1])
-<<<<<<< HEAD
             self.users[addr] = 180.0 # expire time
-=======
-            self.users[addr] = {'exptime':}
->>>>>>> ae23594fec05daaa71a55256fcdfeb5495a94435
+            #self.users[addr] = {'exptime':}
             threading.Thread(target=self.proces_messages, args=(conn, addr)).start()
 
     def proces_messages(self, conn, addr):
@@ -98,7 +92,6 @@ class Tracker(threading.Thread):
             print("data" + data)
             if (is_json(data)):
             	data_dic = json.loads(data)
-<<<<<<< HEAD
             	print(data_dic)
             	for key, value in data_dic.iteritems():
             		fname = key
@@ -111,13 +104,11 @@ class Tracker(threading.Thread):
             	
             	#sending files
             	conn.sendall(json.dumps(self.files))
-=======
             
             	# sync and send files json data
             
             	#sending files
             	conn.sendall(self.files)
->>>>>>> ae23594fec05daaa71a55256fcdfeb5495a94435
             else:
             	print ("Invalid data")
             	# lock released by client on exit
