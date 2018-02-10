@@ -29,8 +29,6 @@ class Tracker(threading.Thread):
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.users = {} # current connections  self.users[(ip,port)] = {'exptime':}
         self.files = {} #{'ip':,'port':,'mtime':} modification time
-        #when user is disconnected, all files are removed from here
-        self.files = {} #{'ip':,'port':,'mtime':}
         #QUESTION: Is self.files a nested dictionary? A dictionary of dictionaries?
         self.lock = threading.Lock()
         try:
@@ -71,7 +69,6 @@ class Tracker(threading.Thread):
             conn, addr = self.server.accept()
             # lock acquired by this client
             self.lock.acquire()
-            print ('connect to:',addr[0], addr[1])
             self.users[addr] = 180.0 # expire time
             #self.users[addr] = {'exptime':}
             threading.Thread(target=self.proces_messages, args=(conn, addr)).start()
@@ -92,23 +89,24 @@ class Tracker(threading.Thread):
             print("data" + data)
             if (is_json(data)):
             	data_dic = json.loads(data)
-            	print(data_dic)
-            	for key, value in data_dic.iteritems():
-            		fname = key
-            		fip = addr[0]
-            		fport = 
-            		fmtime = value
-            		self.files[fname] = {fip, fport, fmtime}
-            
-            	# sync and send files json data
-            	
-            	#sending files
+            	if data_dic.has_key("files"):
+            		
+            		# sync and send files json data
+            		files = data_dic["files"] #list
+            		fport = data_dic["port"]
+            		f = eval(json.dumps(files[0]))
+            		print("files", f)
+            		for f in files:
+            			f = eval(json.dumps(f))
+            			fname = f["name"]
+            			fip = addr[0]
+            			fmtime = f["mtime"]
+            			print (fname, fip, fmtime)
+            			#{'ip':,'port':,'mtime':}
+            			self.files[fname] = {'ip': fip,'port': fport,'mtime': fmtime}
+      	      		print("self.files",self.files)	
+            		#sending files
             	conn.sendall(json.dumps(self.files))
-            
-            	# sync and send files json data
-            
-            	#sending files
-            	conn.sendall(self.files)
             else:
             	print ("Invalid data")
             	# lock released by client on exit
