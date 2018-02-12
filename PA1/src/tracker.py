@@ -86,7 +86,7 @@ class Tracker(threading.Thread):
                     break
             #YOUR CODE
             # check if the received data is a json string and load the json string
-            #print("data" + data)
+            print("data" + data)
             if (is_json(data)):
             	data_dic = json.loads(data)
             	print "client server" + addr[0] + ":" + str(data_dic["port"])
@@ -96,6 +96,7 @@ class Tracker(threading.Thread):
             		files = data_dic["files"] #list
             		fport = data_dic["port"]
             		for f in files:
+            			#THIS IS BAD BUT WORKS!
             			f = eval(json.dumps(f))
             			fname = f["name"]
             			fip = addr[0]
