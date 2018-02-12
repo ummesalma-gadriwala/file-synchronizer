@@ -29,7 +29,6 @@ class Tracker(threading.Thread):
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.users = {} # current connections  self.users[(ip,port)] = {'exptime':}
         self.files = {} #{'ip':,'port':,'mtime':} modification time
-        #QUESTION: Is self.files a nested dictionary? A dictionary of dictionaries?
         self.lock = threading.Lock()
         try:
             #YOUR CODE
@@ -53,7 +52,7 @@ class Tracker(threading.Thread):
         # remove all files with the same port
         
         keep_alive_timer = 180
-        data = 'hello'
+        
         
         
         
@@ -68,7 +67,7 @@ class Tracker(threading.Thread):
             #accept incoming connection and create a thread for receiving messages from FileSynchronizer
             conn, addr = self.server.accept()
             # lock acquired by this client
-            self.lock.acquire()
+            #self.lock.acquire()
             self.users[addr] = 180.0 # expire time
             #self.users[addr] = {'exptime':}
             threading.Thread(target=self.proces_messages, args=(conn, addr)).start()
@@ -76,9 +75,10 @@ class Tracker(threading.Thread):
     def proces_messages(self, conn, addr):
         conn.settimeout(180.0)
         print 'Client connected with ' + addr[0] + ':' + str(addr[1])
-        while True:
+        while True:										
             #receive data
             data = ''
+            self.lock.acquire()
             while True:
                 part = conn.recv(self.BUFFER_SIZE)
                 data =data+ part
@@ -86,30 +86,31 @@ class Tracker(threading.Thread):
                     break
             #YOUR CODE
             # check if the received data is a json string and load the json string
-            print("data" + data)
+            #print("data" + data)
             if (is_json(data)):
             	data_dic = json.loads(data)
+            	print "client server" + addr[0] + ":" + str(data_dic["port"])
             	if data_dic.has_key("files"):
             		
             		# sync and send files json data
             		files = data_dic["files"] #list
             		fport = data_dic["port"]
-            		f = eval(json.dumps(files[0]))
-            		print("files", f)
             		for f in files:
             			f = eval(json.dumps(f))
             			fname = f["name"]
             			fip = addr[0]
             			fmtime = f["mtime"]
-            			print (fname, fip, fmtime)
+            			#print (fname, fip, fmtime)
             			#{'ip':,'port':,'mtime':}
             			self.files[fname] = {'ip': fip,'port': fport,'mtime': fmtime}
-      	      		print("self.files",self.files)	
-            		#sending files
+      	      	#print("self.files",self.files)	
+            	#sending files
             	conn.sendall(json.dumps(self.files))
+            	self.lock.release()
             else:
             	print ("Invalid data")
             	# lock released by client on exit
+            	conn.sendall(json.dumps(self.files))
             	self.lock.release()
             	break
                                 
