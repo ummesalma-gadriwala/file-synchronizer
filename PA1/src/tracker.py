@@ -40,7 +40,7 @@ class Tracker(threading.Thread):
             sys.exit()
         #YOUR CODE
         #listen for connections
-            #backlog specifies the max number of queued connections and should be at least 1; max 5
+        #backlog specifies the max number of queued connections and should be at least 1; max 5
         self.server.listen(5)
         print('The server is ready to receive')
         
@@ -50,10 +50,31 @@ class Tracker(threading.Thread):
         #checking users are alive
         # keepalive message sent every 180 seconds
         # remove all files with the same port
+        print "before: self.users", self.users
+        print "before: self.files", self.files
+        for user in self.users.keys():
+        	uip = user[0]
+        	uport = user[1]
+        	uexptime = self.users[user]
+        	if uexptime < 0:
+        		# kick out client
+        		self.lock.acquire()
+        		self.users.pop(user) # remove from self.users
+        		self.lock.release()
+        		for f in self.files.keys(): # remove files from self.files
+        			print "files", self.files[f], self.files[f]["port"], uport
+        			if self.files[f]["port"] == uport:
+        				self.lock.acquire()
+        				self.files.pop(f)
+        				self.lock.release()
+        		print "after: self.users", self.users
+        		print "after: self.files", self.files
+        	else:
+        		# decrement timer by 5
+        		self.users[user] = uexptime - 5   	
         
-        keep_alive_timer = 180
-        
-        
+        threading.Timer(5, self.check_user).start()
+      	
         
         
     #Ensure sockets are closed on disconnect
@@ -61,15 +82,17 @@ class Tracker(threading.Thread):
         self.server.close()
 
     def run(self):
+    	# thread to execute check_user executes every 5 seconds
+    	threading.Timer(5, self.check_user).start()
+    	#t =threading.Timer(10,self.check_user)
+    	#t.start()
+    	
         print('Waiting for connections on port %s' % (self.port))
         while True:
             #YOUR CODE
             #accept incoming connection and create a thread for receiving messages from FileSynchronizer
             conn, addr = self.server.accept()
-            # lock acquired by this client
-            #self.lock.acquire()
-            self.users[addr] = 180.0 # expire time
-            #self.users[addr] = {'exptime':}
+            #self.users[addr] = 180.0 # expire time
             threading.Thread(target=self.proces_messages, args=(conn, addr)).start()
 
     def proces_messages(self, conn, addr):
@@ -78,7 +101,6 @@ class Tracker(threading.Thread):
         while True:										
             #receive data
             data = ''
-            self.lock.acquire()
             while True:
                 part = conn.recv(self.BUFFER_SIZE)
                 data =data+ part
@@ -86,12 +108,14 @@ class Tracker(threading.Thread):
                     break
             #YOUR CODE
             # check if the received data is a json string and load the json string
-            print("data" + data)
+            #print("data" + data)
             if (is_json(data)):
             	data_dic = json.loads(data)
             	print "client server" + addr[0] + ":" + str(data_dic["port"])
+            	self.lock.acquire()
+            	self.users[(addr[0],data_dic["port"])] = 180 #expire time
+            	self.lock.release()
             	if data_dic.has_key("files"):
-            		
             		# sync and send files json data
             		files = data_dic["files"] #list
             		fport = data_dic["port"]
@@ -103,16 +127,17 @@ class Tracker(threading.Thread):
             			fmtime = f["mtime"]
             			#print (fname, fip, fmtime)
             			#{'ip':,'port':,'mtime':}
+            			self.lock.acquire()
+            			# check modification time here
             			self.files[fname] = {'ip': fip,'port': fport,'mtime': fmtime}
-      	      	#print("self.files",self.files)	
+            			self.lock.release()
+      	      	print("self.files",self.files)	
             	#sending files
             	conn.sendall(json.dumps(self.files))
-            	self.lock.release()
             else:
             	print ("Invalid data")
             	# lock released by client on exit
             	conn.sendall(json.dumps(self.files))
-            	self.lock.release()
             	break
                                 
         conn.close() # Close
