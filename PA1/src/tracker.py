@@ -129,7 +129,12 @@ class Tracker(threading.Thread):
             			#{'ip':,'port':,'mtime':}
             			self.lock.acquire()
             			# check modification time here
-            			self.files[fname] = {'ip': fip,'port': fport,'mtime': fmtime}
+            			# update file if mtime for new file is more
+            			if fname in self.files.keys():
+            				if self.files[fname]['mtime'] < fmtime:
+            					self.files[fname] = {'ip': fip,'port': fport,'mtime': fmtime}
+            			else:
+            				self.files[fname] = {'ip': fip,'port': fport,'mtime': fmtime}
             			self.lock.release()
       	      	print("self.files",self.files)	
             	#sending files
