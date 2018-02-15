@@ -1,3 +1,0 @@
-In test1: fileSynchronizer_linux/fileSynchronizer 127.0.0.1 8080
-In test2: fileSynchronizer_linux/fileSynchronizer 127.0.0.1 8080
-In src: fileSynchronizer_linux/fileSynchronizer 127.0.0.1 8080
