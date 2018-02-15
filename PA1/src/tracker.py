@@ -50,8 +50,8 @@ class Tracker(threading.Thread):
         #checking users are alive
         # keepalive message sent every 180 seconds
         # remove all files with the same port
-        print "before: self.users", self.users
-        print "before: self.files", self.files
+        #print "before: self.users", self.users
+        #print "before: self.files", self.files
         for user in self.users.keys():
         	uip = user[0]
         	uport = user[1]
@@ -62,13 +62,13 @@ class Tracker(threading.Thread):
         		self.users.pop(user) # remove from self.users
         		self.lock.release()
         		for f in self.files.keys(): # remove files from self.files
-        			print "files", self.files[f], self.files[f]["port"], uport
+        			#print "files", self.files[f], self.files[f]["port"], uport
         			if self.files[f]["port"] == uport:
         				self.lock.acquire()
         				self.files.pop(f)
         				self.lock.release()
-        		print "after: self.users", self.users
-        		print "after: self.files", self.files
+        		#print "after: self.users", self.users
+        		#print "after: self.files", self.files
         	else:
         		# decrement timer by 5
         		self.users[user] = uexptime - 5   	
@@ -136,7 +136,7 @@ class Tracker(threading.Thread):
             			else:
             				self.files[fname] = {'ip': fip,'port': fport,'mtime': fmtime}
             			self.lock.release()
-      	      	print("self.files",self.files)	
+      	      	#print("self.files",self.files)	
             	#sending files
             	conn.sendall(json.dumps(self.files))
             else:
