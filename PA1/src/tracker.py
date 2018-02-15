@@ -49,9 +49,7 @@ class Tracker(threading.Thread):
         #YOUR CODE
         #checking users are alive
         # keepalive message sent every 180 seconds
-        # remove all files with the same port
-        #print "before: self.users", self.users
-        #print "before: self.files", self.files
+        # remove all files with the same port as client port
         for user in self.users.keys():
         	uip = user[0]
         	uport = user[1]
@@ -61,14 +59,12 @@ class Tracker(threading.Thread):
         		self.lock.acquire()
         		self.users.pop(user) # remove from self.users
         		self.lock.release()
+        		self.lock.acquire()
         		for f in self.files.keys(): # remove files from self.files
-        			#print "files", self.files[f], self.files[f]["port"], uport
         			if self.files[f]["port"] == uport:
-        				self.lock.acquire()
+        				#self.lock.acquire()
         				self.files.pop(f)
-        				self.lock.release()
-        		#print "after: self.users", self.users
-        		#print "after: self.files", self.files
+        		self.lock.release()
         	else:
         		# decrement timer by 5
         		self.users[user] = uexptime - 5   	
@@ -84,15 +80,12 @@ class Tracker(threading.Thread):
     def run(self):
     	# thread to execute check_user executes every 5 seconds
     	threading.Timer(5, self.check_user).start()
-    	#t =threading.Timer(10,self.check_user)
-    	#t.start()
     	
         print('Waiting for connections on port %s' % (self.port))
         while True:
             #YOUR CODE
             #accept incoming connection and create a thread for receiving messages from FileSynchronizer
             conn, addr = self.server.accept()
-            #self.users[addr] = 180.0 # expire time
             threading.Thread(target=self.proces_messages, args=(conn, addr)).start()
 
     def proces_messages(self, conn, addr):
@@ -113,7 +106,7 @@ class Tracker(threading.Thread):
             	data_dic = json.loads(data)
             	print "client server" + addr[0] + ":" + str(data_dic["port"])
             	self.lock.acquire()
-            	self.users[(addr[0],data_dic["port"])] = 180 #expire time
+            	self.users[(addr[0],data_dic["port"])] = 180.0 #expire time
             	self.lock.release()
             	if data_dic.has_key("files"):
             		# sync and send files json data
@@ -125,18 +118,15 @@ class Tracker(threading.Thread):
             			fname = f["name"]
             			fip = addr[0]
             			fmtime = f["mtime"]
-            			#print (fname, fip, fmtime)
             			#{'ip':,'port':,'mtime':}
             			self.lock.acquire()
-            			# check modification time here
             			# update file if mtime for new file is more
             			if fname in self.files.keys():
             				if self.files[fname]['mtime'] < fmtime:
             					self.files[fname] = {'ip': fip,'port': fport,'mtime': fmtime}
             			else:
             				self.files[fname] = {'ip': fip,'port': fport,'mtime': fmtime}
-            			self.lock.release()
-      	      	#print("self.files",self.files)	
+            			self.lock.release()	
             	#sending files
             	conn.sendall(json.dumps(self.files))
             else:
