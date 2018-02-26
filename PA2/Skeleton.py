@@ -56,7 +56,7 @@ def validate_port(x):
 #NOTE: Exclude files with .so, .py, .dll suffixes
 def get_file_info():
     """
-    Return: a JSON array of {"name":file,"mtime”:mtime}
+    Return: a JSON array of {"name":file,"mtime":mtime}
     """
     # YOUR CODE
 
