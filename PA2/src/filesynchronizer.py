@@ -59,6 +59,7 @@ def get_file_info():
     Return: a JSON array of {"name":file,"mtime":mtime}
     """
     # YOUR CODE
+    return
 
 #Check if a port is available
 def check_port_avaliable(check_port):
@@ -84,6 +85,10 @@ def get_next_avaliable_port(initial_port):
     port found to be available; False if no port is available.
     """
     # YOUR CODE
+    for port in range(initial_port, 65535):
+    	if check_port_available(port):
+    		return port
+    return False
 
 
 class FileSynchronizer(threading.Thread):
@@ -91,25 +96,26 @@ class FileSynchronizer(threading.Thread):
 
         threading.Thread.__init__(self)
         #Port for serving file requests
-        self.port = #YOUR CODE
-        self.host = #YOUR CODE
+        self.port = port #YOUR CODE
+        self.host = host #YOUR CODE
 
         #Tracker IP/hostname and port
-        self.trackerhost = #YOUR CODE
-        self.trackerport = #YOUR CODE
+        self.trackerhost = trackerhost #YOUR CODE
+        self.trackerport = trackerport #YOUR CODE
 
         self.BUFFER_SIZE = 8192
 
         #Create a TCP socket to communicate with tracker
-        self.client = #YOUR CODE
+        self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #YOUR CODE
         self.client.settimeout(180)
 
         #Store the message to be sent to tracker. Initialize to Init message
         #that contains port number and local file info.
-        self.msg = #YOUR CODE
+        #QUESTION: Where is the local file infor stored?
+        self.msg = {'port': self.port, 'files': []} #YOUR CODE
 
         #Create a TCP socket to serve file requests
-        self.server = #YOUR CODE
+        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #YOUR CODE
 
         try:
             self.server.bind((self.host, self.port))
@@ -123,7 +129,7 @@ class FileSynchronizer(threading.Thread):
         self.server.close()
 
     #Handle file request from a peer
-    def process_message(self, conn,addr):
+    def process_message(self, conn, addr):
         """
         Arguments:
         self -- self object
@@ -132,8 +138,20 @@ class FileSynchronizer(threading.Thread):
         """
         #YOUR code
         #Step 1. read the file name contained in the request
+        #receive data
+        request = ''
+        while True:
+        	part = conn.recv(self.BUFFER_SIZE)
+        	request = request + part
+            #if len(part) < self.BUFFER_SIZE: break
+        print request
         #Step 2. read the file from local directory (assuming binary file < 4MB)
+        file = open(request, 'r')
+        content = file.read()
+        file.close()
+        conn.sendall(content)
         #Step 3. send the file to the requester
+		#conn.sendall(content)
 
     def run(self):
         self.client.connect((self.trackerhost,self.trackerport))
@@ -150,21 +168,38 @@ class FileSynchronizer(threading.Thread):
         print 'connect to:'+self.trackerhost,self.trackerport
         #Step 1. send Init msg to tracker
         #YOUR CODE
-
+		trackerConn = (self.trackerhost, self.trackerport)
+		trackerConn.sendall(self.msg)
         #Step 2. receive a directory response message from tracker
         directory_response_message = ''
         #YOUR CODE
+        drm = ''
+        while True:
+        	part = trackerConn.recv(self.BUFFER_SIZE)
+            drm = drm + part
+            if len(part) < self.BUFFER_SIZE:
+            	break
 
         #Step 3. parse the directory response message. if it contains new or
         #more up-to-date files, request the files from the respective peers.
         #NOTE: compare the modified time of the files in the message and
         #that of local files of the same name.
         #YOUR CODE
+        for file in drm.keys():
+        	fip = file['ip'] #string
+        	fport = file['port'] #int
+        	fmtime = file['mtime'] #long
+        	if os.path.isfile(file):
+        		# local mtime < drs mtime
+        		if os.path.getmtime(file) < fmtime:
+        			self.syncfile()
+        	else:
+        		self.syncfile()
 
         #Step 4. construct the KeepAlive message
-        self.msg = #YOUR CODE
+        self.msg = {'port': 180} #YOUR CODE
 
-        #Step 4. start a timer
+        #Step 5. start a timer
         t = threading.Timer(5, self.sync)
         t.start()
 
