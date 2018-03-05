@@ -86,7 +86,7 @@ def get_next_avaliable_port(initial_port):
     """
     # YOUR CODE
     for port in range(initial_port, 65535):
-    	if check_port_available(port):
+    	if check_port_avaliable(port):
     		return port
     return False
 
@@ -143,15 +143,15 @@ class FileSynchronizer(threading.Thread):
         while True:
         	part = conn.recv(self.BUFFER_SIZE)
         	request = request + part
-            #if len(part) < self.BUFFER_SIZE: break
+        	if len(part) < self.BUFFER_SIZE:
+        		break
         print request
         #Step 2. read the file from local directory (assuming binary file < 4MB)
         file = open(request, 'r')
         content = file.read()
         file.close()
-        conn.sendall(content)
         #Step 3. send the file to the requester
-		#conn.sendall(content)
+        conn.sendall(content)
 
     def run(self):
         self.client.connect((self.trackerhost,self.trackerport))
@@ -168,17 +168,17 @@ class FileSynchronizer(threading.Thread):
         print 'connect to:'+self.trackerhost,self.trackerport
         #Step 1. send Init msg to tracker
         #YOUR CODE
-		trackerConn = (self.trackerhost, self.trackerport)
-		trackerConn.sendall(self.msg)
+        trackerConn = (self.trackerhost, self.trackerport)
+        trackerConn.sendall(self.msg)
         #Step 2. receive a directory response message from tracker
         directory_response_message = ''
         #YOUR CODE
         drm = ''
         while True:
         	part = trackerConn.recv(self.BUFFER_SIZE)
-            drm = drm + part
-            if len(part) < self.BUFFER_SIZE:
-            	break
+        	drm = drm + part
+        	if len(part) < self.BUFFER_SIZE:
+        		break
 
         #Step 3. parse the directory response message. if it contains new or
         #more up-to-date files, request the files from the respective peers.
