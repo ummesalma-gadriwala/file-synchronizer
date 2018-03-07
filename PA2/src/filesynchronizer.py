@@ -59,7 +59,12 @@ def get_file_info():
     Return: a JSON array of {"name":file,"mtime":mtime}
     """
     # YOUR CODE
-    return
+    localFiles = [f for f in os.listdir('.') if os.path.isfile(f)]
+    files = []
+    for f in localFiles:
+		if not (('.so' in f) or ('.py' in f) or ('.dll' in f)):
+			files += [{'name': f, 'mtime': os.path.getmtime(f)}]
+    return files
 
 #Check if a port is available
 def check_port_avaliable(check_port):
@@ -111,12 +116,7 @@ class FileSynchronizer(threading.Thread):
 
         #Store the message to be sent to tracker. Initialize to Init message
         #that contains port number and local file info.
-        localFiles = [f for f in os.listdir('.') if os.path.isfile(f)]
-	files = []
-	for f in localFiles:
-		files = [{'name': f, 'mtime': os.path.getmtime(f)}]	
-        self.msg = {'port': self.port, 'files': files} #YOUR CODE
-
+        self.msg = {'port': self.port, 'files': get_file_info()} #YOUR CODE
         #Create a TCP socket to serve file requests
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #YOUR CODE
 
@@ -171,13 +171,13 @@ class FileSynchronizer(threading.Thread):
         print 'connect to:'+self.trackerhost,self.trackerport
         #Step 1. send Init msg to tracker
         #YOUR CODE
-        trackerConn = (self.trackerhost, self.trackerport)
-        trackerConn.sendall(self.msg)
+        #trackerConn = (self.trackerhost, self.trackerport)
+        self.client.sendall(json.dumps(self.msg))
         #Step 2. receive a directory response message from tracker
         directory_response_message = ''
         #YOUR CODE
         while True:
-        	part = trackerConn.recv(self.BUFFER_SIZE)
+        	part = self.client.recv(self.BUFFER_SIZE)
         	directory_response_message += part
         	if len(part) < self.BUFFER_SIZE:
         		break
@@ -187,16 +187,18 @@ class FileSynchronizer(threading.Thread):
         #NOTE: compare the modified time of the files in the message and
         #that of local files of the same name.
         #YOUR CODE
-        for file in directory_response_message.keys():
-        	fip = file['ip'] #string
-        	fport = file['port'] #int
-        	fmtime = file['mtime'] #long
-        	if os.path.isfile(file):
-        		# local mtime < drs mtime
+	drm_dic = json.loads(directory_response_message)
+	print "drm_dic", drm_dic
+        for file in drm_dic.keys():
+        	fip = drm_dic[file]['ip'] #string
+        	fport = drm_dic[file]['port'] #int
+        	fmtime = drm_dic[file]['mtime'] #long
+        	if os.path.isfile(file): # file already exists
+        		#local mtime < drs mtime
         		if os.path.getmtime(file) < fmtime:
-        			self.syncfile()
-        	else:
-        		self.syncfile()
+        			self.syncfile(file)
+        	else: # request a file that does not exist
+        		self.syncfile(file)
 
         #Step 4. construct the KeepAlive message
         self.msg = {'port': 180} #YOUR CODE
@@ -204,6 +206,20 @@ class FileSynchronizer(threading.Thread):
         #Step 5. start a timer
         t = threading.Timer(5, self.sync)
         t.start()
+        
+    def syncfile(self, file):
+    	self.client.send(file)
+    	f = open(file, 'w+')
+    	content = ''
+        while True:
+        	part = conn.recv(self.BUFFER_SIZE)
+        	content = content + part
+        	if len(part) < self.BUFFER_SIZE:
+        		break
+    	f.write(content)
+    	f.close()
+    	return
+	
 
 if __name__ == '__main__':
     #parse commmand line arguments
