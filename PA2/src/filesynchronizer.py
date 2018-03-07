@@ -92,7 +92,7 @@ def get_next_avaliable_port(initial_port):
 
 
 class FileSynchronizer(threading.Thread):
-    def __init__(self, trackerhost,trackerport,port, host='0.0.0.0'):
+    def __init__(self, trackerhost,trackerport, port, host='0.0.0.0'):
 
         threading.Thread.__init__(self)
         #Port for serving file requests
@@ -111,8 +111,11 @@ class FileSynchronizer(threading.Thread):
 
         #Store the message to be sent to tracker. Initialize to Init message
         #that contains port number and local file info.
-        #QUESTION: Where is the local file infor stored?
-        self.msg = {'port': self.port, 'files': []} #YOUR CODE
+        localFiles = [f for f in os.listdir('.') if os.path.isfile(f)]
+	files = []
+	for f in localFiles:
+		files = [{'name': f, 'mtime': os.path.getmtime(f)}]	
+        self.msg = {'port': self.port, 'files': files} #YOUR CODE
 
         #Create a TCP socket to serve file requests
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #YOUR CODE
@@ -173,10 +176,9 @@ class FileSynchronizer(threading.Thread):
         #Step 2. receive a directory response message from tracker
         directory_response_message = ''
         #YOUR CODE
-        drm = ''
         while True:
         	part = trackerConn.recv(self.BUFFER_SIZE)
-        	drm = drm + part
+        	directory_response_message += part
         	if len(part) < self.BUFFER_SIZE:
         		break
 
@@ -185,7 +187,7 @@ class FileSynchronizer(threading.Thread):
         #NOTE: compare the modified time of the files in the message and
         #that of local files of the same name.
         #YOUR CODE
-        for file in drm.keys():
+        for file in directory_response_message.keys():
         	fip = file['ip'] #string
         	fport = file['port'] #int
         	fmtime = file['mtime'] #long
