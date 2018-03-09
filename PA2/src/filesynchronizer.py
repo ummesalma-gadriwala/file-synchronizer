@@ -62,8 +62,8 @@ def get_file_info():
     localFiles = [f for f in os.listdir('.') if os.path.isfile(f)]
     files = []
     for f in localFiles:
-		if not (('.so' in f) or ('.py' in f) or ('.dll' in f)):
-			files += [{'name': f, 'mtime': os.path.getmtime(f)}]
+        if not (f.endswith('.so') or f.endswith('.py') or f.endswith('.dll') or f.endswith('.md')):
+            files += [{'name': f, 'mtime': os.path.getmtime(f)}]
     return files
 
 #Check if a port is available
@@ -91,8 +91,8 @@ def get_next_avaliable_port(initial_port):
     """
     # YOUR CODE
     for port in range(initial_port, 65535):
-    	if check_port_avaliable(port):
-    		return port
+        if check_port_avaliable(port):
+            return port
     return False
 
 
@@ -144,10 +144,10 @@ class FileSynchronizer(threading.Thread):
         #receive data
         request = ''
         while True:
-        	part = conn.recv(self.BUFFER_SIZE)
-        	request = request + part
-        	if len(part) < self.BUFFER_SIZE:
-        		break
+            part = conn.recv(self.BUFFER_SIZE)
+            request = request + part
+            if len(part) < self.BUFFER_SIZE:
+                break
         print request
         #Step 2. read the file from local directory (assuming binary file < 4MB)
         file = open(request, 'r')
@@ -168,37 +168,35 @@ class FileSynchronizer(threading.Thread):
     #Send Init or KeepAlive message to tracker, handle directory response message
     #and call self.syncfile() to request files from peers
     def sync(self):
-        print 'connect to:'+self.trackerhost,self.trackerport
+        print 'connect to: ' + self.trackerhost,self.trackerport
         #Step 1. send Init msg to tracker
         #YOUR CODE
-        #trackerConn = (self.trackerhost, self.trackerport)
         self.client.sendall(json.dumps(self.msg))
         #Step 2. receive a directory response message from tracker
         directory_response_message = ''
         #YOUR CODE
         while True:
-        	part = self.client.recv(self.BUFFER_SIZE)
-        	directory_response_message += part
-        	if len(part) < self.BUFFER_SIZE:
-        		break
-
+            part = self.client.recv(self.BUFFER_SIZE)
+            directory_response_message += part
+            if len(part) < self.BUFFER_SIZE:
+                break
         #Step 3. parse the directory response message. if it contains new or
         #more up-to-date files, request the files from the respective peers.
         #NOTE: compare the modified time of the files in the message and
         #that of local files of the same name.
         #YOUR CODE
-	drm_dic = json.loads(directory_response_message)
-	print "drm_dic", drm_dic
+        drm_dic = json.loads(directory_response_message)
+        print "drm_dic", drm_dic
         for file in drm_dic.keys():
-        	fip = drm_dic[file]['ip'] #string
-        	fport = drm_dic[file]['port'] #int
-        	fmtime = drm_dic[file]['mtime'] #long
-        	if os.path.isfile(file): # file already exists
-        		#local mtime < drs mtime
-        		if os.path.getmtime(file) < fmtime:
-        			self.syncfile(file)
-        	else: # request a file that does not exist
-        		self.syncfile(file)
+            fip = drm_dic[file]['ip'] #string
+            fport = drm_dic[file]['port'] #int
+            fmtime = drm_dic[file]['mtime'] #long
+            if os.path.isfile(file): # file already exists
+                #local mtime < drs mtime
+                if os.path.getmtime(file) < fmtime:
+                    self.syncfile(file, fip, fport)
+            else: # request a file that does not exist
+                self.syncfile(file)
 
         #Step 4. construct the KeepAlive message
         self.msg = {'port': 180} #YOUR CODE
@@ -208,18 +206,21 @@ class FileSynchronizer(threading.Thread):
         t.start()
         
     def syncfile(self, file):
-    	self.client.send(file)
-    	f = open(file, 'w+')
-    	content = ''
+        # request file
+        self.server.send(file)
+        # receive request
+        content = ''
         while True:
-        	part = conn.recv(self.BUFFER_SIZE)
-        	content = content + part
-        	if len(part) < self.BUFFER_SIZE:
-        		break
-    	f.write(content)
-    	f.close()
-    	return
-	
+            part = self.server.recv(self.BUFFER_SIZE)
+            content += part
+            if len(part) < self.BUFFER_SIZE:
+                break
+        # create file in local directory
+        f = open(file, 'w+')
+        f.write(content)
+        f.close()
+        return
+    
 
 if __name__ == '__main__':
     #parse commmand line arguments
