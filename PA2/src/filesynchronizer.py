@@ -142,6 +142,7 @@ class FileSynchronizer(threading.Thread):
         #YOUR code
         #Step 1. read the file name contained in the request
         #receive data
+        print "!!!!!FILE REQUESTED!!!!!!"
         request = ''
         while True:
             part = conn.recv(self.BUFFER_SIZE)
@@ -185,18 +186,20 @@ class FileSynchronizer(threading.Thread):
         #NOTE: compare the modified time of the files in the message and
         #that of local files of the same name.
         #YOUR CODE
-        drm_dic = json.loads(directory_response_message)
-        print "drm_dic", drm_dic
-        for file in drm_dic.keys():
-            fip = drm_dic[file]['ip'] #string
-            fport = drm_dic[file]['port'] #int
-            fmtime = drm_dic[file]['mtime'] #long
-            if os.path.isfile(file): # file already exists
-                #local mtime < drs mtime
-                if os.path.getmtime(file) < fmtime:
+        print "drm", directory_response_message, "."
+        if (directory_response_message != ''):
+            drm_dic = json.loads(directory_response_message)
+            print "drm_dic", (drm_dic)
+            for file in drm_dic.keys():
+                fip = drm_dic[file]['ip'] #string
+                fport = drm_dic[file]['port'] #int
+                fmtime = drm_dic[file]['mtime'] #long
+                if os.path.isfile(file): # file already exists
+                    #local mtime < drs mtime
+                    if os.path.getmtime(file) < fmtime:
+                        self.syncfile(file, fip, fport)
+                else: # request a file that does not exist
                     self.syncfile(file, fip, fport)
-            else: # request a file that does not exist
-                self.syncfile(file)
 
         #Step 4. construct the KeepAlive message
         self.msg = {'port': 180} #YOUR CODE
@@ -205,13 +208,15 @@ class FileSynchronizer(threading.Thread):
         t = threading.Timer(5, self.sync)
         t.start()
         
-    def syncfile(self, file):
+    def syncfile(self, file, host, port):
+        # connect to client
+        conn, addr = self.server.accept()
         # request file
-        self.server.send(file)
+        conn.send(file) #see if this is needed
         # receive request
         content = ''
         while True:
-            part = self.server.recv(self.BUFFER_SIZE)
+            part = conn.recv(self.BUFFER_SIZE)
             content += part
             if len(part) < self.BUFFER_SIZE:
                 break
@@ -219,6 +224,7 @@ class FileSynchronizer(threading.Thread):
         f = open(file, 'w+')
         f.write(content)
         f.close()
+        self.exit()
         return
     
 
