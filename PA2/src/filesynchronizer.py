@@ -62,7 +62,7 @@ def get_file_info():
     localFiles = [f for f in os.listdir('.') if os.path.isfile(f)]
     files = []
     for f in localFiles:
-        if not (f.endswith('.so') or f.endswith('.py') or f.endswith('.dll') or f.endswith('.md')):
+        if not (f.endswith('.so') or f.endswith('.py') or f.endswith('.dll')):
             files += [{'name': f, 'mtime': os.path.getmtime(f)}]
     return files
 
@@ -142,20 +142,20 @@ class FileSynchronizer(threading.Thread):
         #YOUR code
         #Step 1. read the file name contained in the request
         #receive data
-        print "!!!!!FILE REQUESTED!!!!!!"
         request = ''
         while True:
+            print "reading requested filename"
             part = conn.recv(self.BUFFER_SIZE)
             request = request + part
             if len(part) < self.BUFFER_SIZE:
                 break
-        print request
         #Step 2. read the file from local directory (assuming binary file < 4MB)
         file = open(request, 'r')
         content = file.read()
         file.close()
         #Step 3. send the file to the requester
         conn.sendall(content)
+        print (request + " sent")
 
     def run(self):
         self.client.connect((self.trackerhost,self.trackerport))
@@ -186,10 +186,8 @@ class FileSynchronizer(threading.Thread):
         #NOTE: compare the modified time of the files in the message and
         #that of local files of the same name.
         #YOUR CODE
-        print "drm", directory_response_message, "."
         if (directory_response_message != ''):
             drm_dic = json.loads(directory_response_message)
-            print "drm_dic", (drm_dic)
             for file in drm_dic.keys():
                 fip = drm_dic[file]['ip'] #string
                 fport = drm_dic[file]['port'] #int
@@ -218,6 +216,7 @@ class FileSynchronizer(threading.Thread):
         content = ''
         while True:
             part = fileServer.recv(self.BUFFER_SIZE)
+            print ("receiving..." + file)
             content += part
             if len(part) < self.BUFFER_SIZE:
                 break
