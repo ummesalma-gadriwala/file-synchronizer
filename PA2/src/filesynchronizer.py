@@ -210,13 +210,14 @@ class FileSynchronizer(threading.Thread):
         
     def syncfile(self, file, host, port):
         # connect to client
-        conn, addr = self.server.accept()
+        fileServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        fileServer.connect((host,port))
         # request file
-        conn.send(file) #see if this is needed
+        fileServer.send(file) #see if this is needed
         # receive request
         content = ''
         while True:
-            part = conn.recv(self.BUFFER_SIZE)
+            part = fileServer.recv(self.BUFFER_SIZE)
             content += part
             if len(part) < self.BUFFER_SIZE:
                 break
@@ -224,7 +225,7 @@ class FileSynchronizer(threading.Thread):
         f = open(file, 'w+')
         f.write(content)
         f.close()
-        self.exit()
+        fileServer.close()
         return
     
 
