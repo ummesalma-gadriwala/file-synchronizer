@@ -90,7 +90,7 @@ def get_next_avaliable_port(initial_port):
     port found to be available; False if no port is available.
     """
     # YOUR CODE
-    for port in range(initial_port, 65535):
+    for port in range(initial_port, 65536):
         if check_port_avaliable(port):
             return port
     return False
