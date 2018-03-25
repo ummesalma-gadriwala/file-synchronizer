@@ -4,27 +4,89 @@ import sys
 
 def diameter (nodes, G):
     #YOUR CODE
-"""
-Input: 
--    List “nodes” containing node IDs 
--    Dictionary “G” with (keys = node IDs) and 
-    (values = list of neighbor IDs for each node)
-Returns: 
--    a Boolean value indicates if the graph G is a spanning tree 
-    (covering and loop-free) or not 
-"""
+    #Diameter: maximum shortest path length among all the node pairs of a given graph
+    Diameter = 0
+    infinity = 9999
+    numberOfNodes = len(nodes)
+    graph = adjMatrix(nodes, G)
+    distance = map(lambda i : map(lambda j: j,i), graph)
+    for k in range(numberOfNodes):
+    	for i in range(numberOfNodes):
+    		for j in range(numberOfNodes):
+    			distance[i][j] = min(distance[i][j], \
+    			distance[i][k]+distance[k][j])
+    			
+    for i in range(numberOfNodes):
+    	for j in range(numberOfNodes):
+    		if distance[i][j] != infinity and distance[i][j] > Diameter:
+    			Diameter = distance[i][j]
     return Diameter
-
-def check_spanning_tree(nodes, G):
-    #YOUR CODE
+    			
 """
 Input: 
--    List “nodes” containing node IDs 
--    Dictionary “G” with (keys = node IDs) and (values = list of neighbor IDs for each node)
+-    List "nodes" containing node IDs 
+-    Dictionary "G" with (keys = node IDs) and 
+    (values = list of neighbor IDs for each node)
 Returns: 
 -    The diameter of graph G as an integer number
 """
+    
+def adjMatrix(nodes, G):
+	graph = []
+	infinity = 9999
+	# initialize graph[i][j] to infinity for every i, j
+	# and for every i, graph[i][i] to 0
+	# modify graph[i][j] to 1 whenever node j is adjacent to i
+	for i in range(len(nodes)):
+		graph += [[]]
+		for j in range(len(nodes)):
+			if (i == j):
+				graph[i] += [0]
+			elif (nodes[j] in G[nodes[i]]):
+				graph[i] += [1]
+			else:
+				graph[i] += [infinity]
+	
+	return graph
+
+def check_spanning_tree(nodes, G):
+    #YOUR CODE
+    isSpanningTree = True
+    # all nodes marked as not visited
+    visited = {}
+    for node in nodes:
+    	visited[node] = False
+    
+    # check if there is a cycle in graph from nodes[0]
+    # mark all vertices reachable from nodes[0] as visited
+    if isCycle(nodes[0], nodes, visited, G, -1):
+    	isSpanningTree = False
+    	return isSpanningTree
+    for node in visited:
+    	if not visited[node]:
+    		isSpanningTree = False
+    		return isSpanningTree
     return isSpanningTree
+    	
+"""
+Input: 
+-    List "nodes" containing node IDs 
+-    Dictionary "G" with (keys = node IDs) and (values = list of neighbor IDs for each node)
+Returns: 
+-    a Boolean value indicates if the graph G is a spanning tree 
+    (covering and loop-free) or not
+"""
+    
+def isCycle(node, nodes, visited, G, parent):
+	visited[node] = True
+	
+	for adj in G[node]:
+		if not visited[adj]:
+			if isCycle(adj, nodes, visited, G, node):
+				return True
+		elif adj != parent:
+			return True
+	return False
 
 def get_choices (L, excludes):
     choices = []
