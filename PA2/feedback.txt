@@ -4,5 +4,6 @@ process directory response message:2/2
 file transfer:1.8/2
 testing procedures:2/2
 comments: change modify time of synchronized files 
-PA1 mark:9.8/10
+bonous: 0.3
+PA1 mark:10.1/10
 If you have any question, please email chenhe at lic54@mcmaster.ca.
