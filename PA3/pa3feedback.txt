@@ -13,4 +13,5 @@ Delay:  0
 Early Bonus:  10.47527778
 Penalty:  0
 Final Mark:  110.4752778
-Normalized Mark:  5.52
+Normalized Mark:  11.05
+For any PA3 grading related questions, please contact Mehdi(jafarizm@mcmaster.ca)

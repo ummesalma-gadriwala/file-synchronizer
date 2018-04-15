@@ -17,3 +17,4 @@ Delay:  0
 Penalty:  0
 Final Mark:  100
 Normalized Mark:  5
+For any lab4 grading related questions, please contact Mehdi(jafarizm@mcmaster.ca)
