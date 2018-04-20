@@ -1,6 +1,0 @@
-create "server" socket:4/4
-update user and files after receiving Init message:2/2
-update user and files after receiving KeepAlive message:1/1
-send directory response message:2/2
-check user:1/1
-PA1 mark:10/10

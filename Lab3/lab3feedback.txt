@@ -1,4 +1,0 @@
-macid:gadriwau
-mark:5(total mark of Lab3:5)
-Feedback message(if any):
-For any lab3 grading related questions, please contact Yongyong Wei(weiy49@mcmaster.ca)

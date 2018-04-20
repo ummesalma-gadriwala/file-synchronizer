@@ -1,0 +1,13 @@
+Peer-to-Peer File Synchronization
+
+A simple P2P file sharing application that synchonizes files among peers. It has the flavor of Dropbox but instead of storing and serving files using the cloud, I utilize a peer-to-peer approach. The server node runs the tracker which facilitates the discovery of peers, and the client node runs the fileSynchronizer.
+
+Tracker:
+- Stores live peers (IP, Port #)
+- Stores meta info for files on live peers
+
+After synchronization, each peer will have the most recent copies of all files on all peers.
+
+FileSynchronizer takes as command line arguments the IP address/hostname and port number of Tracker is running on, e.g., FileSynchronizer localhost 8080.
+
+Tracker takes as command line arguments an IP address and port number. Upon accepting a connection from a user, a new thread is spawned. The file information on the peer node will be uploaded to the tracker, along with the IP address of the peer and FileSynchronizerServerPort, the port for serving file transfer requests to other peers. The peer node periodically sends a keepalive message to the tracker to inform the tracker that it is online. When the tracker receives the message, it will refresh the state of the peer and also send the directory info to the peer. Otherwise, if the tracker does not get any keepalive message from the peer node for 180 seconds, it will remove entries of the files associated with the peer.

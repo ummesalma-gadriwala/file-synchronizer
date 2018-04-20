@@ -1,4 +1,0 @@
-macid:gadriwau
-total mark:12(total questions:12)
-Feedback message(if any):"good job"
-For any lab2 grading related questions, please contact Yongyong Wei(weiy49@mcmaster.ca)
