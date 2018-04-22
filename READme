@@ -1,6 +1,6 @@
 Peer-to-Peer File Synchronization
 
-A simple P2P file sharing application that synchonizes files among peers. It has the flavor of Dropbox but instead of storing and serving files using the cloud, I utilize a peer-to-peer approach. The server node runs the tracker which facilitates the discovery of peers, and the client node runs the fileSynchronizer.
+A simple P2P file sharing application that synchronizes files among peers. It has the flavor of Dropbox but instead of storing and serving files using the cloud, I utilize a peer-to-peer approach. The server node runs the tracker which facilitates the discovery of peers, and the client node runs the fileSynchronizer.
 
 Tracker:
 - Stores live peers (IP, Port #)
