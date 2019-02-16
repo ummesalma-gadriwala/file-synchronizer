@@ -31,14 +31,12 @@ class Tracker(threading.Thread):
         self.files = {} #{'ip':,'port':,'mtime':} modification time
         self.lock = threading.Lock()
         try:
-            #YOUR CODE
             #Bind to address and port
             self.server.bind((host, port))
             
         except socket.error:
             print('Bind failed %s' % (socket.error))
             sys.exit()
-        #YOUR CODE
         #listen for connections
         #backlog specifies the max number of queued connections and should be at least 1; max 5
         self.server.listen(5)
@@ -46,8 +44,7 @@ class Tracker(threading.Thread):
         
 
     def check_user(self):
-        #YOUR CODE
-        #checking users are alive
+        # checking users are alive
         # keepalive message sent every 180 seconds
         # remove all files with the same port as client port
         for user in self.users.keys():
@@ -83,7 +80,6 @@ class Tracker(threading.Thread):
     	
         print('Waiting for connections on port %s' % (self.port))
         while True:
-            #YOUR CODE
             #accept incoming connection and create a thread for receiving messages from FileSynchronizer
             conn, addr = self.server.accept()
             threading.Thread(target=self.proces_messages, args=(conn, addr)).start()
@@ -99,9 +95,7 @@ class Tracker(threading.Thread):
                 data =data+ part
                 if len(part) < self.BUFFER_SIZE:
                     break
-            #YOUR CODE
             # check if the received data is a json string and load the json string
-            #print("data" + data)
             if (is_json(data)):
             	data_dic = json.loads(data)
             	print "client server" + addr[0] + ":" + str(data_dic["port"])
