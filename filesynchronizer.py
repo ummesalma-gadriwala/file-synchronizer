@@ -1,6 +1,5 @@
 #!/usr/bin/python
 #==============================================================================
-#description     :This is a skeleton code for programming assignment 2
 #usage           :python filesynchronizer.py trackerIP trackerPort
 #python_version  :2.7
 #Authors         :Umme Salma Gadriwala
@@ -58,7 +57,6 @@ def get_file_info():
     """
     Return: a JSON array of {"name":file,"mtime":mtime}
     """
-    # YOUR CODE
     localFiles = [f for f in os.listdir('.') if os.path.isfile(f)]
     files = []
     for f in localFiles:
@@ -80,7 +78,6 @@ def check_port_avaliable(check_port):
     return True
 
 #Get the next available port by searching from initial_port to 2^16 - 1
-#Hint: use check_port_avaliable() function
 def get_next_avaliable_port(initial_port):
     """
     Arguments:
@@ -89,7 +86,6 @@ def get_next_avaliable_port(initial_port):
     Return:
     port found to be available; False if no port is available.
     """
-    # YOUR CODE
     for port in range(initial_port, 65536):
         if check_port_avaliable(port):
             return port
@@ -139,7 +135,6 @@ class FileSynchronizer(threading.Thread):
         conn -- socket object for an accepted connection from a peer
         addr -- address bound to the socket of the accepted connection
         """
-        #YOUR code
         #Step 1. read the file name contained in the request
         #receive data
         request = ''
@@ -185,7 +180,6 @@ class FileSynchronizer(threading.Thread):
         #more up-to-date files, request the files from the respective peers.
         #NOTE: compare the modified time of the files in the message and
         #that of local files of the same name.
-        #YOUR CODE
         if (directory_response_message != ''):
             drm_dic = json.loads(directory_response_message)
             for file in drm_dic.keys():
